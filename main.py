@@ -1,0 +1,1 @@
+# Entry point — runs full pipeline end to end

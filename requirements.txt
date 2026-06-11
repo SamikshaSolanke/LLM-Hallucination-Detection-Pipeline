@@ -1,0 +1,13 @@
+datasets==2.19.1               
+huggingface-hub==0.23.0        
+google-generativeai==0.7.2     
+deepeval==0.21.73              # HallucinationMetric + LLM eval toolkit
+pandas==2.2.2                  
+numpy==1.26.4                  
+matplotlib==3.9.0              
+seaborn==0.13.2                
+python-dotenv==1.0.1           
+pydantic==2.7.1                
+pytest==8.2.1                  # Unit tests
+pytest-asyncio==0.23.7         # Async test support
+tqdm==4.66.4                   # Progress bars for batch model runs         

@@ -1,0 +1,1 @@
+# Group by category, compute hallucination rates
