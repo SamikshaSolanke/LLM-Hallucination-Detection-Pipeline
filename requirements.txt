@@ -10,4 +10,6 @@ python-dotenv==1.0.1
 pydantic==2.7.1                
 pytest==8.2.1                  # Unit tests
 pytest-asyncio==0.23.7         # Async test support
-tqdm==4.66.4                   # Progress bars for batch model runs         
+tqdm==4.66.4                   # Progress bars for batch model runs      
+jupyter==1.0.0                 
+ipykernel==6.29.4   
