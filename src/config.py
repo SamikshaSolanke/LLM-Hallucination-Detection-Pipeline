@@ -48,7 +48,7 @@ MODELS: dict[str, str] = {
 }
 
 TEMPERATURE         : float = 0.0    
-MAX_OUTPUT_TOKENS   : int   = 10     
+MAX_OUTPUT_TOKENS   : int   = 50     
 REQUEST_DELAY_SEC   : float = 1.0    
 HALLUCINATION_THRESHOLD : float = 0.5   
 

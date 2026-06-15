@@ -29,6 +29,7 @@ from data_loader import load_truthfulqa
 
 genai.configure(api_key=config.GOOGLE_API_KEY)
 
+
 def build_mcq1_prompt(question: str, choices: list[str]) -> str:
     choice_str = "\n".join(
         f"  {chr(65 + i)}) {c}" for i, c in enumerate(choices)
@@ -61,6 +62,7 @@ def letter_to_answer(letter: str | None, choices: list[str]) -> str | None:
 
 def query_gemini(model_name: str, question: str, choices: list[str]) -> tuple[str | None, str | None]:
     prompt = build_mcq1_prompt(question, choices)
+
     try:
         model = genai.GenerativeModel(
             model_name=model_name,
@@ -69,9 +71,42 @@ def query_gemini(model_name: str, question: str, choices: list[str]) -> tuple[st
                 max_output_tokens=config.MAX_OUTPUT_TOKENS,
             ),
         )
-        response = model.generate_content(prompt)
-        raw = response.text.strip()
-        return raw, None
+
+        response = model.generate_content(
+            prompt,
+            safety_settings={
+                "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
+                "HARM_CATEGORY_HATE_SPEECH": "BLOCK_NONE",
+                "HARM_CATEGORY_SEXUALLY_EXPLICIT": "BLOCK_NONE",
+                "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_NONE",
+            },
+        )
+
+        print("\n" + "=" * 80)
+        print("FULL GEMINI RESPONSE")
+        print("=" * 80)
+        print(response)
+        print("=" * 80)
+
+        if not response.candidates:
+            return None, "No candidates returned"
+
+        candidate = response.candidates[0]
+
+        print("Finish reason:", candidate.finish_reason)
+
+        try:
+            print("Candidate content:")
+            print(candidate.content)
+        except Exception as e:
+            print("Could not print content:", e)
+
+        try:
+            raw = response.text.strip()
+            return raw, None
+        except Exception as e:
+            return None, f"response.text failed: {e}"
+
     except Exception as e:
         return None, str(e)
 
