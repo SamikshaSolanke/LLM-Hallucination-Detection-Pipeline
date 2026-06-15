@@ -39,8 +39,8 @@ HF_MC_CONFIG        : str  = "multiple_choice"   # has mc1_targets / mc2_targets
 HF_GEN_CONFIG       : str  = "generation"         # has category
 HF_SPLIT            : str  = "validation"
 
-MODEL_FLASH         : str  = "gemini-1.5-flash"
-MODEL_PRO           : str  = "gemini-1.5-pro"
+MODEL_FLASH         : str  = "gemini-2.5-flash"
+MODEL_PRO           : str  = "gemini-2.5-pro"
 
 MODELS: dict[str, str] = {
     "flash" : MODEL_FLASH,
