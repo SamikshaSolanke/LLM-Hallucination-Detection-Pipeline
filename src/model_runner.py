@@ -16,18 +16,35 @@ Key design decisions
 
 3. Two models side-by-side — run_model() is model-agnostic. main.py calls it
    once for Flash and once for Pro, producing two separate result JSONs.
+
+Output JSON schema (one file per model)
+----------------------------------------
+[
+  {
+    "index"          : 0,
+    "question"       : "What is ...",
+    "category"       : "Distraction",
+    "correct_answer" : "Nauru is ...",
+    "all_choices"    : ["Nauru is ...", "Vatican City ...", ...],
+    "model_answer"   : "Nauru is ...",     ← mapped from letter
+    "raw_response"   : "A",               ← exactly what Gemini returned
+    "is_correct"     : true,
+    "error"          : null               ← error message string if API call failed
+  },
+  ...
+]
 """
 
 import json
 import time
 import re
-import google.generativeai as genai
 import pandas as pd
 from tqdm import tqdm
+from groq import Groq
 import config
 from data_loader import load_truthfulqa
 
-genai.configure(api_key=config.GOOGLE_API_KEY)
+client = Groq(api_key=config.GROQ_API_KEY)
 
 
 def build_mcq1_prompt(question: str, choices: list[str]) -> str:
@@ -60,60 +77,25 @@ def letter_to_answer(letter: str | None, choices: list[str]) -> str | None:
     return None
 
 
-def query_gemini(model_name: str, question: str, choices: list[str]) -> tuple[str | None, str | None]:
+def query_groq(model_name: str, question: str, choices: list[str]) -> tuple[str | None, str | None]:
     prompt = build_mcq1_prompt(question, choices)
-
     try:
-        model = genai.GenerativeModel(
-            model_name=model_name,
-            generation_config=genai.types.GenerationConfig(
-                temperature=config.TEMPERATURE,
-                max_output_tokens=config.MAX_OUTPUT_TOKENS,
-            ),
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=config.TEMPERATURE,
+            max_tokens=config.MAX_OUTPUT_TOKENS,
         )
-
-        response = model.generate_content(
-            prompt,
-            safety_settings={
-                "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
-                "HARM_CATEGORY_HATE_SPEECH": "BLOCK_NONE",
-                "HARM_CATEGORY_SEXUALLY_EXPLICIT": "BLOCK_NONE",
-                "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_NONE",
-            },
-        )
-
-        print("\n" + "=" * 80)
-        print("FULL GEMINI RESPONSE")
-        print("=" * 80)
-        print(response)
-        print("=" * 80)
-
-        if not response.candidates:
-            return None, "No candidates returned"
-
-        candidate = response.candidates[0]
-
-        print("Finish reason:", candidate.finish_reason)
-
-        try:
-            print("Candidate content:")
-            print(candidate.content)
-        except Exception as e:
-            print("Could not print content:", e)
-
-        try:
-            raw = response.text.strip()
-            return raw, None
-        except Exception as e:
-            return None, f"response.text failed: {e}"
-
+        raw = response.choices[0].message.content.strip()
+        return raw, None
     except Exception as e:
         return None, str(e)
 
 
+
 def run_model(model_key: str, df: pd.DataFrame, output_path, resume: bool = True) -> list[dict]:
     model_name = config.MODELS[model_key]
-    print(f"\n[model_runner] Starting model: {model_name}")
+    print(f"\n[model_runner] Starting model : {model_name}")
     print(f"[model_runner] Total questions : {len(df)}")
     print(f"[model_runner] Output path     : {output_path}")
 
@@ -130,12 +112,12 @@ def run_model(model_key: str, df: pd.DataFrame, output_path, resume: bool = True
         if idx in completed_indices:
             continue
 
-        choices = row["all_choices"]
-        raw_response, error = query_gemini(model_name, row["question"], choices)
+        choices      = row["all_choices"]
+        raw_response, error = query_groq(model_name, row["question"], choices)
 
-        letter      = parse_letter(raw_response) if raw_response else None
+        letter       = parse_letter(raw_response) if raw_response else None
         model_answer = letter_to_answer(letter, choices)
-        is_correct  = (model_answer == row["correct_answer"]) if model_answer else False
+        is_correct   = (model_answer == row["correct_answer"]) if model_answer else False
 
         result = {
             "index"         : int(idx),
@@ -155,10 +137,10 @@ def run_model(model_key: str, df: pd.DataFrame, output_path, resume: bool = True
 
         time.sleep(config.REQUEST_DELAY_SEC)
 
-    total     = len(results)
-    correct   = sum(r["is_correct"] for r in results)
-    errors    = sum(1 for r in results if r["error"] is not None)
-    accuracy  = correct / total * 100 if total else 0
+    total    = len(results)
+    correct  = sum(r["is_correct"] for r in results)
+    errors   = sum(1 for r in results if r["error"] is not None)
+    accuracy = correct / total * 100 if total else 0
 
     print(f"\n[model_runner] ── {model_name} complete ──")
     print(f"  Total      : {total}")
@@ -188,13 +170,14 @@ def results_to_dataframe(results: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(results)
 
 
-if __name__ == "__main__":
-    print("── Smoke test: single question on gemini-1.5-flash ──\n")
 
-    df = load_truthfulqa(use_cache=True)
+if __name__ == "__main__":
+    print("── Smoke test: single question on llama-3.1-8b-instant ──\n")
+
+    df     = load_truthfulqa(use_cache=True)
     sample = df.iloc[0]
 
-    raw, err = query_gemini(
+    raw, err = query_groq(
         model_name=config.MODEL_FLASH,
         question=sample["question"],
         choices=sample["all_choices"],

@@ -27,6 +27,7 @@ Usage
 
 import argparse
 import time
+
 import config
 from data_loader  import load_truthfulqa
 from model_runner import run_model, load_results, results_to_dataframe
@@ -37,7 +38,7 @@ from visualizer   import generate_all_charts, generate_html_report
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Hallucination Detection Pipeline — TruthfulQA × Gemini"
+        description="Hallucination Detection Pipeline — TruthfulQA × Groq"
     )
     parser.add_argument(
         "--skip-inference",
@@ -74,7 +75,7 @@ def step_run_inference(df: object, model: str) -> None:
 
     path_map = {
         "flash": config.FLASH_RESPONSES_JSON,
-        "pro" : config.PRO_RESPONSES_JSON,
+        "pro"  : config.PRO_RESPONSES_JSON,
     }
 
     models_to_run = ["flash", "pro"] if model == "both" else [model]
@@ -82,14 +83,14 @@ def step_run_inference(df: object, model: str) -> None:
     for model_key in models_to_run:
         print(f"\n  ── {config.MODELS[model_key]} ──")
         run_model(
-            model_key = model_key,
-            df = df,
+            model_key   = model_key,
+            df          = df,
             output_path = path_map[model_key],
-            resume = True,       
+            resume      = True,       # skip already-done questions on re-run
         )
         if model_key == "flash" and len(models_to_run) > 1:
-            print("\n  [main] Pausing 5s between models to avoid rate limits...")
-            time.sleep(5)
+            print("\n  [main] Pausing 2s between models...")
+            time.sleep(2)
 
 
 def step_evaluate() -> object:

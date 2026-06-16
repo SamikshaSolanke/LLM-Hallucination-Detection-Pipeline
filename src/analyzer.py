@@ -9,6 +9,14 @@ than Gemini Flash").
 All functions take a DataFrame produced by evaluator.load_scored_results()
 or evaluator.results_to_dataframe(scored_list) and return clean DataFrames
 ready to be passed directly into visualizer.py.
+
+Key outputs
+-----------
+  category_stats(df)        → hallucination rate per category per model
+  overall_stats(df)         → single-row summary per model
+  model_delta(df)           → Flash vs Pro delta per category
+  worst_categories(df, n)   → top-n most hallucinated categories
+  high_risk_summary(df)     → high-risk vs standard category comparison
 """
 
 import pandas as pd
@@ -23,8 +31,8 @@ def category_stats(df: pd.DataFrame) -> pd.DataFrame:
         df_eval
         .groupby(["category", "model"])
         .agg(
-            total = ("hallucinated", "count"),
-            hallucinated = ("hallucinated", "sum"),
+            total        =("hallucinated", "count"),
+            hallucinated =("hallucinated", "sum"),
         )
         .reset_index()
     )
@@ -45,9 +53,9 @@ def overall_stats(df: pd.DataFrame) -> pd.DataFrame:
         df_eval
         .groupby("model")
         .agg(
-            total = ("is_correct", "count"),
-            correct = ("is_correct", "sum"),
-            hallucinated = ("hallucinated", "sum"),
+            total       =("is_correct", "count"),
+            correct     =("is_correct", "sum"),
+            hallucinated=("hallucinated", "sum"),
         )
         .reset_index()
     )
@@ -62,17 +70,17 @@ def overall_stats(df: pd.DataFrame) -> pd.DataFrame:
 def model_delta(df: pd.DataFrame) -> pd.DataFrame:
     stats = category_stats(df)
 
-    flash = stats[stats["model"].str.contains("flash")][["category", "hallucination_rate"]].rename(
-        columns = {"hallucination_rate": "flash_rate"}
+    flash = stats[stats["model"] == config.MODEL_FLASH][["category", "hallucination_rate"]].rename(
+        columns={"hallucination_rate": "flash_rate"}
     )
-    pro = stats[stats["model"].str.contains("pro")][["category", "hallucination_rate"]].rename(
-        columns = {"hallucination_rate": "pro_rate"}
+    pro = stats[stats["model"] == config.MODEL_PRO][["category", "hallucination_rate"]].rename(
+        columns={"hallucination_rate": "pro_rate"}
     )
 
-    delta_df = flash.merge(pro, on = "category", how = "inner")
-    delta_df["delta"] = (delta_df["flash_rate"] - delta_df["pro_rate"]).round(1)
+    delta_df = flash.merge(pro, on="category", how="inner")
+    delta_df["delta"]     = (delta_df["flash_rate"] - delta_df["pro_rate"]).round(1)
     delta_df["abs_delta"] = delta_df["delta"].abs()
-    delta_df["winner"] = delta_df["delta"].apply(
+    delta_df["winner"]    = delta_df["delta"].apply(
         lambda d: "pro" if d > 0 else ("flash" if d < 0 else "tie")
     )
 
@@ -94,7 +102,7 @@ def worst_categories(df: pd.DataFrame, n: int = 10) -> pd.DataFrame:
         lambda c: any(kw in c.lower() for kw in config.HIGH_RISK_KEYWORDS)
     )
 
-    return avg.sort_values("avg_hallucination_rate", ascending = False).head(n).reset_index(drop = True)
+    return avg.sort_values("avg_hallucination_rate", ascending=False).head(n).reset_index(drop=True)
 
 
 def high_risk_summary(df: pd.DataFrame) -> pd.DataFrame:
@@ -108,23 +116,23 @@ def high_risk_summary(df: pd.DataFrame) -> pd.DataFrame:
         df_eval
         .groupby(["model", "risk_group"])
         .agg(
-            avg_hallucination_rate = ("hallucinated", lambda x: round(x.mean() * 100, 1)),
-            category_count = ("category", "nunique"),
+            avg_hallucination_rate=("hallucinated", lambda x: round(x.mean() * 100, 1)),
+            category_count        =("category", "nunique"),
         )
         .reset_index()
     )
 
-    return summary.sort_values(["model", "risk_group"]).reset_index(drop = True)
+    return summary.sort_values(["model", "risk_group"]).reset_index(drop=True)
 
 
 def build_report(df: pd.DataFrame) -> dict:
     print("[analyzer] Running all analyses...")
     report = {
-        "overall" : overall_stats(df),
-        "by_category" : category_stats(df),
-        "delta" : model_delta(df),
-        "worst" : worst_categories(df, n=10),
-        "high_risk" : high_risk_summary(df),
+        "overall"    : overall_stats(df),
+        "by_category": category_stats(df),
+        "delta"      : model_delta(df),
+        "worst"      : worst_categories(df, n=10),
+        "high_risk"  : high_risk_summary(df),
     }
 
     print("\n── Overall Results ──")

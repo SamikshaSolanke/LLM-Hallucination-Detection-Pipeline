@@ -34,26 +34,25 @@ def score_result(result: dict) -> dict:
 
     if result["error"] is not None or result["model_answer"] is None:
         scored["hallucination_score"] = None
-        scored["hallucinated"] = None
-        scored["eval_status"] = "skipped"
+        scored["hallucinated"]        = None
+        scored["eval_status"]         = "skipped"
         return scored
 
     is_correct = result["model_answer"] == result["correct_answer"]
-    h_score = 0.0 if is_correct else 1.0
+    h_score    = 0.0 if is_correct else 1.0
 
     scored["hallucination_score"] = h_score
-    scored["hallucinated"] = h_score >= config.HALLUCINATION_THRESHOLD
-    scored["eval_status"] = "evaluated"
-
+    scored["hallucinated"]        = h_score >= config.HALLUCINATION_THRESHOLD
+    scored["eval_status"]         = "evaluated"
     return scored
 
 
 def evaluate(results: list[dict]) -> list[dict]:
     scored = [score_result(r) for r in results]
 
-    total = len(scored)
+    total     = len(scored)
     evaluated = sum(1 for r in scored if r["eval_status"] == "evaluated")
-    skipped = sum(1 for r in scored if r["eval_status"] == "skipped")
+    skipped   = sum(1 for r in scored if r["eval_status"] == "skipped")
     hallucinated = sum(
         1 for r in scored
         if r["hallucinated"] is True
@@ -69,17 +68,17 @@ def evaluate(results: list[dict]) -> list[dict]:
 
 
 def evaluate_both_models() -> tuple[pd.DataFrame, pd.DataFrame]:
-    print("\n── Evaluating Gemini Flash ──")
+    print("\n── Evaluating Llama 3.1 8B (Flash) ──")
     flash_results = load_results("flash")
     flash_scored  = evaluate(flash_results)
     df_flash      = results_to_dataframe(flash_scored)
-    df_flash["model"] = "gemini-1.5-flash"
+    df_flash["model"] = config.MODEL_FLASH
 
-    print("\n── Evaluating Gemini Pro ──")
+    print("\n── Evaluating Llama 3.3 70B (Pro) ──")
     pro_results = load_results("pro")
     pro_scored  = evaluate(pro_results)
     df_pro      = results_to_dataframe(pro_scored)
-    df_pro["model"] = "gemini-1.5-pro"
+    df_pro["model"] = config.MODEL_PRO
 
     return df_flash, df_pro
 
@@ -106,5 +105,4 @@ def load_scored_results() -> pd.DataFrame:
         )
     with open(config.SCORED_RESULTS_JSON, "r") as f:
         records = json.load(f)
-        
     return pd.DataFrame(records)
