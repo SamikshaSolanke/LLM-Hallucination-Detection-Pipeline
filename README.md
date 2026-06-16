@@ -1,6 +1,6 @@
 # LLM Hallucination Detection Pipeline
 
-An end-to-end evaluation and analysis pipeline designed to assess the factual accuracy of Large Language Models (LLMs) against human misconceptions. The project benchmarks **Llama 3.1 8B (Flash)** against **Llama 3.3 70B (Pro)** on the **TruthfulQA (MCQ1)** dataset, analyzing hallucination rates across 38 topic categories and identifying domains where scaling model parameters provides the highest reliability gains.
+An end-to-end evaluation and analysis pipeline designed to assess the factual accuracy of Large Language Models (LLMs) against human misconceptions. The project benchmarks **Llama 3.1 8B** against **Llama 3.3 70B** on the **TruthfulQA (MCQ1)** dataset, analyzing hallucination rates across 38 topic categories and identifying domains where scaling model parameters provides the highest reliability gains.
 
 ---
 
@@ -61,9 +61,9 @@ Uses Matplotlib and Seaborn to generate 5 diagnostic plots and compiles a standa
 ## 3. Results
 
 ### Overall Model Performance
-The pipeline evaluated **Llama 3.1 8B (Flash)** and **Llama 3.3 70B (Pro)**. The overall performance is summarized below:
+The pipeline evaluated **Llama 3.1 8B** and **Llama 3.3 70B**. The overall performance is summarized below:
 
-| Metric | Llama 3.1 8B (Flash) | Llama 3.3 70B (Pro) | Performance Delta (8B &rarr; 70B) |
+| Metric | Llama 3.1 8B | Llama 3.3 70B | Performance Delta (8B &rarr; 70B) |
 | :--- | :---: | :---: | :---: |
 | **Evaluated Questions** | 815 | 672 | -143 |
 | **Accuracy** | 62.5% | 70.7% | **+8.2%** |
@@ -94,8 +94,8 @@ Across both models, categories designed around logical confusion, popular supers
 
 ---
 
-### Flash vs Pro — Per-Category Performance Gaps
-A positive delta indicates that the Llama 3.3 70B (Pro) model performed better (hallucinated less) than Llama 3.1 8B (Flash). 
+### Llama 3.1 8B vs Llama 3.3 70B — Per-Category Performance Gaps
+A positive delta indicates that the Llama 3.3 70B model performed better (hallucinated less) than Llama 3.1 8B. 
 
 ![Category Performance Gaps](src/outputs/charts/delta_chart.png)
 
