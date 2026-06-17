@@ -153,23 +153,23 @@ Domains categorized as high-risk (medical, legal, financial) were contrasted aga
 
 ```directory
 .
-├── .env                        # Configuration file containing environment API keys (e.g., GROQ_API_KEY).
-├── .gitignore                  # Specifies files and folders that Git should ignore (e.g., virtual envs, API keys).
-├── README.md                   # Main documentation file explaining the pipeline, methodology, and results.
-├── requirements.txt            # Lists Python library dependencies required to run the pipeline.
-├── tester.py                   # A utility script to list Google GenAI models supporting content generation.
-├── data/                       # Cache directory for raw datasets and run results.
-│   ├── raw/                    # Stores cached raw dataset files retrieved from HuggingFace.
+├── .env                        
+├── .gitignore                  
+├── README.md                   
+├── requirements.txt            # Lists dependencies 
+├── tester.py                   
+├── data/                       
+│   ├── raw/                    # Stores raw dataset files retrieved from HuggingFace.
 │   └── results/                # Stores intermediate results, scored outputs, and response cache.
-├── notebooks/                  # Directory for Jupyter notebooks.
-│   └── exploration.ipynb       # Notebook for exploring the TruthfulQA dataset and prototyping model queries.
-├── tests/                      # Contains python unit tests to verify the integrity of pipeline modules.
-│   ├── __init__.py             # Python initialization file designating tests as a package.
-│   ├── test_analyzer.py        # Pytest unit tests for accuracy, rate, and model delta calculations in the analyzer.
-│   ├── test_data_loader.py     # Pytest unit tests for caching, loading, and preprocessing the TruthfulQA dataset.
-│   └── test_evaluator.py       # Pytest unit tests verifying accuracy and hallucination scoring logic.
-└── src/                        # Main source code directory for the pipeline.
-    ├── __init__.py             # Python initialization file designating src as a package.
+├── notebooks/                  
+│   └── exploration.ipynb       # Notebook for EDA on TruthfulQA and quick prototyping.
+├── tests/                      
+│   ├── __init__.py             
+│   ├── test_analyzer.py        # For accuracy, rate, and model delta calculations.
+│   ├── test_data_loader.py     # For caching, loading, and preprocessing the TruthfulQA dataset.
+│   └── test_evaluator.py       # Verifying accuracy and hallucination scoring logic.
+└── src/                        
+    ├── __init__.py             
     ├── config.py               # Central configuration module defining paths, parameters, model IDs, and keywords.
     ├── data_loader.py          # Ingests, preprocesses, categorizes, and caches the TruthfulQA dataset.
     ├── model_runner.py         # Handles batch model runs, queries Groq API, and parses letter outputs.
@@ -177,8 +177,8 @@ Domains categorized as high-risk (medical, legal, financial) were contrasted aga
     ├── analyzer.py             # Computes metrics, overall summary statistics, deltas, and risk aggregates.
     ├── visualizer.py           # Generates Seaborn graphs and packages results into a self-contained HTML report.
     ├── main.py                 # The master orchestration script running the pipeline from raw data to HTML dashboard.
-    ├── data/                   # Execution environment data cache folder containing results and raw csv databases.
-    └── outputs/                # Folder containing the pipeline's visual and interactive outputs.
+    ├── data/                   
+    └── outputs/                
         ├── charts/             # Generated PNG plots showing comparative model evaluations.
         └── reports/            # Generated standalone HTML report summarizing all benchmark findings.
 ```
